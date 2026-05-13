@@ -32,7 +32,7 @@ export async function runList(): Promise<void> {
 function nextRunString(expr: string): string {
   try {
     const d = parser.parseExpression(expr).next().toDate();
-    return d.toISOString().replace('T', ' ').slice(0, 16);
+    return d.toLocaleString('sv-SE', { hour12: false }).slice(0, 16);
   } catch {
     return '—';
   }
