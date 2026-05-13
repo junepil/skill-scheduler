@@ -20,10 +20,14 @@ RC=$?
 END_TS="$(date '+%Y-%m-%d %H:%M:%S')"
 echo "[$END_TS] $LABEL end exit=$RC" >> "$LOG"
 
+notify() {
+  osascript -e 'on run argv' -e 'display notification (item 1 of argv) with title (item 2 of argv)' -e 'end run' -- "$1" "$2"
+}
+
 if [ "$RC" -eq 0 ]; then
-  osascript -e "display notification \"$PROMPT 완료\" with title \"$LABEL\""
+  notify "$PROMPT 완료" "$LABEL"
 else
-  osascript -e "display notification \"$LOG 확인\" with title \"$LABEL 실패\""
+  notify "$LOG 확인" "$LABEL 실패"
 fi
 
 exit "$RC"
