@@ -58,4 +58,16 @@ describe('expandCron', () => {
     if (r.ok) return;
     expect(r.error).toMatch(/100|too many/i);
   });
+
+  test('step in day-of-month → rejected', () => {
+    const r = expandCron('0 9 */5 * *');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toMatch(/dayOfMonth/);
+  });
+
+  test('step in day-of-week → rejected', () => {
+    const r = expandCron('0 9 * * 1/2');
+    expect(r.ok).toBe(false);
+  });
 });

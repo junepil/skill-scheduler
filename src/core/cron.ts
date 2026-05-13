@@ -13,11 +13,11 @@ export type CronExpansion =
   | { ok: false; error: string };
 
 const FIELD_BOUNDS = [
-  { name: 'minute', min: 0, max: 59, key: 'Minute' as const, allowWildcard: false },
-  { name: 'hour', min: 0, max: 23, key: 'Hour' as const, allowWildcard: false },
-  { name: 'dayOfMonth', min: 1, max: 31, key: 'Day' as const, allowWildcard: true },
-  { name: 'month', min: 1, max: 12, key: 'Month' as const, allowWildcard: true },
-  { name: 'dayOfWeek', min: 0, max: 6, key: 'Weekday' as const, allowWildcard: true },
+  { name: 'minute', min: 0, max: 59, key: 'Minute' as const, allowWildcard: false, allowStep: true },
+  { name: 'hour', min: 0, max: 23, key: 'Hour' as const, allowWildcard: false, allowStep: true },
+  { name: 'dayOfMonth', min: 1, max: 31, key: 'Day' as const, allowWildcard: true, allowStep: false },
+  { name: 'month', min: 1, max: 12, key: 'Month' as const, allowWildcard: true, allowStep: false },
+  { name: 'dayOfWeek', min: 0, max: 6, key: 'Weekday' as const, allowWildcard: true, allowStep: false },
 ];
 
 const MAX_DICTS = 100;
@@ -45,7 +45,7 @@ export function expandCron(expression: string): CronExpansion {
       }
       expanded.push(null);
     } else {
-      const values = expandField(f, bound.min, bound.max);
+      const values = expandField(f, bound.min, bound.max, bound.allowStep);
       if (!values) {
         return { ok: false, error: `unsupported expression in ${bound.name}: ${f}` };
       }
@@ -64,12 +64,18 @@ export function expandCron(expression: string): CronExpansion {
   return { ok: true, dicts };
 }
 
-function expandField(field: string, min: number, max: number): number[] | null {
+function expandField(
+  field: string,
+  min: number,
+  max: number,
+  allowStep: boolean,
+): number[] | null {
   const parts = field.split(',');
   const out = new Set<number>();
   for (const p of parts) {
     const m = p.match(/^(\d+)(?:-(\d+))?(?:\/(\d+))?$/);
     if (!m) return null;
+    if (m[3] !== undefined && !allowStep) return null;
     const start = Number(m[1]);
     const end = m[2] !== undefined ? Number(m[2]) : start;
     const step = m[3] !== undefined ? Number(m[3]) : 1;
