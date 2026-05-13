@@ -1,4 +1,4 @@
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import parser from 'cron-parser';
 import cronstrue from 'cronstrue';
@@ -86,8 +86,6 @@ export async function runAdd(): Promise<void> {
   await mkdir(PATHS.launchAgents, { recursive: true });
   await mkdir(PATHS.logsDir, { recursive: true });
   await writeFile(plistPath, xml);
-  await launchctl.plutilLint(plistPath);
-  await launchctl.load(plistPath);
 
   const entry: ScheduleEntry = {
     id,
@@ -101,7 +99,18 @@ export async function runAdd(): Promise<void> {
     logPath,
     createdAt: new Date().toISOString(),
   };
-  await registry.add(entry);
+
+  try {
+    await launchctl.plutilLint(plistPath);
+    await launchctl.load(plistPath);
+    await registry.add(entry);
+  } catch (e) {
+    await rm(plistPath, { force: true });
+    try {
+      await launchctl.unload(plistPath);
+    } catch {}
+    throw e;
+  }
 
   outro(`Registered. Next run: ${nextRun}`);
 }
