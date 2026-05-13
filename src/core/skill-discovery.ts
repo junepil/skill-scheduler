@@ -16,44 +16,43 @@ type Options = {
   pluginsCacheDir: string;
 };
 
+const MAX_RECURSION_DEPTH = 8;
+
 export async function discoverSkills(opts: Options): Promise<DiscoveredSkill[]> {
   const out: DiscoveredSkill[] = [];
-  await collect(opts.userSkillsDir, 'user', 1, out);
-  await collect(opts.pluginsCacheDir, 'plugin', 4, out);
+  await collect(opts.userSkillsDir, 'user', out);
+  await collect(opts.pluginsCacheDir, 'plugin', out);
   return out;
 }
 
 async function collect(
   root: string,
   source: SkillSource,
-  maxDepth: number,
   out: DiscoveredSkill[],
 ): Promise<void> {
   if (!(await exists(root))) return;
-  await walk(root, source, maxDepth, 0, out);
+  await walk(root, source, 0, out);
 }
 
 async function walk(
   dir: string,
   source: SkillSource,
-  maxDepth: number,
   depth: number,
   out: DiscoveredSkill[],
 ): Promise<void> {
-  if (depth > maxDepth + 5) return;
+  if (depth > MAX_RECURSION_DEPTH) return;
   const skillFile = join(dir, 'SKILL.md');
   if (await exists(skillFile)) {
     const skill = await parseSkill(skillFile, source);
     if (skill) out.push(skill);
     return;
   }
-  if (depth >= maxDepth + 5) return;
   const entries = await safeReaddir(dir);
   for (const e of entries) {
     const full = join(dir, e.name);
     const s = await safeStat(full);
     if (s?.isDirectory()) {
-      await walk(full, source, maxDepth, depth + 1, out);
+      await walk(full, source, depth + 1, out);
     }
   }
 }
