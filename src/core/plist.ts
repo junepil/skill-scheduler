@@ -10,6 +10,7 @@ export type PlistInput = {
 
 export function serializePlist(input: PlistInput): string {
   const envEntries = Object.entries(input.env)
+    .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `        <key>${escape(k)}</key>\n        <string>${escape(v)}</string>`)
     .join('\n');
 
