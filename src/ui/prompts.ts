@@ -1,6 +1,19 @@
 import * as clack from '@clack/prompts';
 import pc from 'picocolors';
 
+export type KeypressInfo = {
+  name?: string;
+  sequence?: string;
+  ctrl?: boolean;
+  meta?: boolean;
+  shift?: boolean;
+};
+
+export function shouldQuit(key: KeypressInfo): boolean {
+  if (key.ctrl || key.meta) return false;
+  return key.name === 'q' || key.name === 'Q';
+}
+
 export function intro(text: string): void {
   clack.intro(pc.bgCyan(pc.black(` ${text} `)));
 }
