@@ -14,7 +14,7 @@ export async function selectSkill<T>(
 ): Promise<T | null> {
   const result = await clack.select({
     message: 'Select skill',
-    options: items.map((i) => ({ value: i.value, label: i.label, hint: i.hint })),
+    options: items as any,
   });
   if (clack.isCancel(result)) return null;
   return result as T;
