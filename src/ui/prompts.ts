@@ -12,9 +12,9 @@ export function outro(text: string): void {
 export async function selectSkill<T>(
   items: Array<{ label: string; hint?: string; value: T }>,
 ): Promise<T | null> {
-  const result = await clack.select({
+  const result = await clack.select<T>({
     message: 'Select skill',
-    options: items as any,
+    options: items as clack.Option<T>[],
   });
   if (clack.isCancel(result)) return null;
   return result as T;
