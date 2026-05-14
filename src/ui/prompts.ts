@@ -50,12 +50,15 @@ export function outro(text: string): void {
 export async function selectSkill<T>(
   items: Array<{ label: string; hint?: string; value: T }>,
 ): Promise<T | null> {
-  const result = await clack.select<T>({
-    message: 'Select skill',
-    options: items as clack.Option<T>[],
+  return withQuitKey(async () => {
+    const result = await clack.select<T>({
+      message: 'Select skill',
+      maxItems: 10,
+      options: items as clack.Option<T>[],
+    });
+    if (clack.isCancel(result)) return null;
+    return result as T;
   });
-  if (clack.isCancel(result)) return null;
-  return result as T;
 }
 
 export async function text(
@@ -68,9 +71,11 @@ export async function text(
 }
 
 export async function confirm(message: string): Promise<boolean> {
-  const result = await clack.confirm({ message });
-  if (clack.isCancel(result)) return false;
-  return result as boolean;
+  return withQuitKey(async () => {
+    const result = await clack.confirm({ message });
+    if (clack.isCancel(result)) return false;
+    return result as boolean;
+  });
 }
 
 export function note(label: string, body: string): void {
