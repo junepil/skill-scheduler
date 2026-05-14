@@ -47,7 +47,7 @@ export async function runList(): Promise<void> {
     if (hasPrev) options.push({ label: 'Previous page', value: 'prev' });
     options.push({ label: 'Quit', value: 'quit' });
 
-    const action = await selectSkill<Action>(options);
+    const action = await selectSkill<Action>(options, 'Page action');
     if (action === 'next') page++;
     else if (action === 'prev') page--;
     else break;

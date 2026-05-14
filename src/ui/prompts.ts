@@ -49,10 +49,11 @@ export function outro(text: string): void {
 
 export async function selectSkill<T>(
   items: Array<{ label: string; hint?: string; value: T }>,
+  message = 'Select skill',
 ): Promise<T | null> {
   return withQuitKey(async () => {
     const result = await clack.select<T>({
-      message: 'Select skill',
+      message,
       maxItems: 10,
       options: items as clack.Option<T>[],
     });
