@@ -61,6 +61,21 @@ export async function selectSkill<T>(
   });
 }
 
+export async function searchSkill<T>(
+  items: Array<{ label: string; hint?: string; value: T }>,
+): Promise<T | null> {
+  return withQuitKey(async () => {
+    const result = await clack.autocomplete<T>({
+      message: 'Select skill',
+      placeholder: 'Type to search...',
+      maxItems: 10,
+      options: items as clack.Option<T>[],
+    });
+    if (clack.isCancel(result)) return null;
+    return result as T;
+  });
+}
+
 export async function text(
   message: string,
   placeholder?: string,
