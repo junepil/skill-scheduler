@@ -3,7 +3,10 @@ import { Registry } from '../core/registry';
 import { PATHS } from '../core/paths';
 import * as launchctl from '../core/launchctl';
 import { renderScheduleTable, type Row } from '../ui/table';
-import { intro, outro } from '../ui/prompts';
+import { intro, outro, selectSkill } from '../ui/prompts';
+import { paginate } from '../ui/pagination';
+
+const PAGE_SIZE = 10;
 
 export async function runList(): Promise<void> {
   intro('skill-scheduler  list');
@@ -24,9 +27,32 @@ export async function runList(): Promise<void> {
     return;
   }
 
-  console.log(renderScheduleTable(rows));
   const loadedCount = rows.filter((r) => r.loaded).length;
-  outro(`${rows.length} schedules · ${loadedCount} loaded`);
+
+  if (rows.length <= PAGE_SIZE) {
+    console.log(renderScheduleTable(rows));
+    outro(`${rows.length} schedules · ${loadedCount} loaded`);
+    return;
+  }
+
+  let page = 0;
+  while (true) {
+    const { slice, totalPages, hasPrev, hasNext } = paginate(rows, page, PAGE_SIZE);
+    console.log(renderScheduleTable(slice));
+    console.log(`Page ${page + 1}/${totalPages} · ${rows.length} schedules · ${loadedCount} loaded`);
+
+    type Action = 'next' | 'prev' | 'quit';
+    const options: Array<{ label: string; value: Action }> = [];
+    if (hasNext) options.push({ label: 'Next page', value: 'next' });
+    if (hasPrev) options.push({ label: 'Previous page', value: 'prev' });
+    options.push({ label: 'Quit', value: 'quit' });
+
+    const action = await selectSkill<Action>(options, 'Page action');
+    if (action === 'next') page++;
+    else if (action === 'prev') page--;
+    else break;
+  }
+  outro('Done.');
 }
 
 function nextRunString(expr: string): string {

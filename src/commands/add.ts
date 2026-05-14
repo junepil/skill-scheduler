@@ -13,7 +13,7 @@ import {
   logPathForId,
   plistPathForId,
 } from '../core/paths';
-import { intro, outro, note, selectSkill, text, confirm, cancel } from '../ui/prompts';
+import { intro, outro, note, searchSkill, text, confirm, cancel } from '../ui/prompts';
 
 export async function runAdd(): Promise<void> {
   intro('skill-scheduler  add');
@@ -24,7 +24,7 @@ export async function runAdd(): Promise<void> {
   });
   if (skills.length === 0) cancel('No skills found');
 
-  const skill = await selectSkill(
+  const skill = await searchSkill(
     skills.map((s) => ({
       label: `${s.name}`,
       hint: `${s.source} · ${s.description.slice(0, 60)}`,
