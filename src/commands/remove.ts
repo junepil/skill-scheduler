@@ -26,9 +26,14 @@ export async function runRemove(idArg?: string): Promise<void> {
   if (!ok) cancel('Cancelled');
 
   try {
-    await launchctl.unload(entry!.plistPath);
+    await launchctl.unload(entry!.plistPath, entry!.label);
   } catch (e) {
-    console.error(`unload warning: ${(e as Error).message}`);
+    // Don't orphan the plist + registry entry if launchd still has the agent
+    // loaded — the file on disk is our only handle to retry the unload.
+    cancel(
+      `${(e as Error).message}. Plist kept at ${entry!.plistPath}. ` +
+        `Try: launchctl bootout gui/$(id -u) ${entry!.plistPath}`,
+    );
   }
   await rm(entry!.plistPath, { force: true });
   await registry.remove(entry!.id);

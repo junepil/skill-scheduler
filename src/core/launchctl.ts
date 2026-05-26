@@ -7,17 +7,23 @@ export async function plutilLint(plistPath: string): Promise<void> {
   }
 }
 
-export async function load(plistPath: string): Promise<void> {
+export async function load(plistPath: string, label: string): Promise<void> {
+  // launchctl load can exit non-zero (or with empty stderr) on modern macOS
+  // even when the agent ends up loaded. Trust runtime state over exit code.
   const result = await $`launchctl load -w ${plistPath}`.quiet().nothrow();
-  if (result.exitCode !== 0) {
-    throw new Error(`launchctl load failed: ${result.stderr.toString().trim()}`);
+  if (!(await loadedLabels()).has(label)) {
+    const detail = result.stderr.toString().trim() || `exit ${result.exitCode}`;
+    throw new Error(`launchctl load failed: ${detail}`);
   }
 }
 
-export async function unload(plistPath: string): Promise<void> {
+export async function unload(plistPath: string, label: string): Promise<void> {
+  // launchctl unload can exit non-zero with empty stderr on macOS Sequoia
+  // even when the unload succeeds. Verify against runtime state.
   const result = await $`launchctl unload -w ${plistPath}`.quiet().nothrow();
-  if (result.exitCode !== 0) {
-    throw new Error(`launchctl unload failed: ${result.stderr.toString().trim()}`);
+  if ((await loadedLabels()).has(label)) {
+    const detail = result.stderr.toString().trim() || `exit ${result.exitCode}`;
+    throw new Error(`launchctl unload failed: ${detail}; agent still loaded`);
   }
 }
 

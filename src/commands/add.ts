@@ -102,12 +102,12 @@ export async function runAdd(): Promise<void> {
 
   try {
     await launchctl.plutilLint(plistPath);
-    await launchctl.load(plistPath);
+    await launchctl.load(plistPath, label);
     await registry.add(entry);
   } catch (e) {
     await rm(plistPath, { force: true });
     try {
-      await launchctl.unload(plistPath);
+      await launchctl.unload(plistPath, label);
     } catch {}
     throw e;
   }
